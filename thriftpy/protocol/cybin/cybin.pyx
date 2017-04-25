@@ -172,8 +172,7 @@ cdef inline read_struct(CyTransportBase buf, obj, decode_response=True):
 
         field_spec = field_specs[fid]
         ttype = field_spec[0]
-        if i32_i64_type_check(ttype, field_type) and \
-                i32_i64_type_check(field_type, ttype):
+        if i32_i64_type_check(ttype, field_type):
             skip(buf, field_type)
             continue
 
@@ -313,7 +312,7 @@ cdef c_read_val(CyTransportBase buf, TType ttype, spec=None,
         orig_type = <TType>read_i08(buf)
         size = read_i32(buf)
 
-        if i32_i64_type_check(k_type, orig_key_type) or i32_i64_type_check(v_type, orig_type):
+        if i32_i64_type_check(k_type, orig_key_type):
             for _ in range(size):
                 skip(buf, orig_key_type)
                 skip(buf, orig_type)
@@ -400,7 +399,10 @@ cpdef skip(CyTransportBase buf, TType ttype):
 
 
 def i32_i64_type_check(ttype, field_type):
-    return ttype != field_type and not (field_type == T_I64 and ttype == T_I32)
+    return ttype != field_type and not (
+            (field_type == T_I64 and ttype == T_I32) or
+            (ttype == T_I64 and field_type == T_I32)
+            )
 
 
 def read_val(CyTransportBase buf, TType ttype, decode_response=True):
